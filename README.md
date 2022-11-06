@@ -369,6 +369,7 @@ return () => mounted = false;
 }, [])
 
 return(
+
 <div className="wrapper">
 <h1>My Grocery List</h1>
 <ul>
@@ -386,3 +387,105 @@ return(
 }
 
 export default App;
+
+Be sure to surround the input with a label so that the form is accessible by a screen reader. It’s also a good practice to add a type="submit" to the button so that it’s clear the role is to submit the form.
+
+## Save the file. When you do, the browser will refresh and you’ll find your form.
+
+## Next, convert the input to a controlled component. You’ll need a controlled component so that you can clear the field after the user successfully submits a new list item.
+
+First, create a new state handler to hold and set the input information using the useState Hook:
+
+api-tutorial/src/components/App/App.js
+
+import React, { useEffect, useState } from 'react';
+import './App.css';
+import { getList } from '../../services/list';
+
+function App() {
+const [itemInput, setItemInput] = useState('');
+const [list, setList] = useState([]);
+
+useEffect(() => {
+let mounted = true;
+getList()
+.then(items => {
+if(mounted) {
+setList(items)
+}
+})
+return () => mounted = false;
+}, [])
+
+return(
+
+<div className="wrapper">
+<h1>My Grocery List</h1>
+<ul>
+{list.map(item => <li key={item.item}>{item.item}</li>)}
+</ul>
+<form>
+<label>
+<p>New Item</p>
+<input type="text" onChange={event => setItemInput(event.target.value)} value={itemInput} />
+</label>
+<button type="submit">Submit</button>
+</form>
+</div>
+)
+}
+
+export default App;
+
+After creating the state handlers, set the value of the input to itemInput and update the value by passing the event.target.value to the setItemInput function using the onChange event handler.
+
+Now your users can fill out a form with new list items. Next you will connect the form to your service.
+
+## Create a function called handleSubmit. handleSubmit will take an event as an argument and will call event.preventDefault() to stop the form from refreshing the browser.
+
+Import setItem from the service, then call setItem with the itemInput value inside the handleSubmit function. Connect handleSubmit to the form by passing it to the onSubmit event handler:
+
+api-tutorial/src/components/App/App.js
+
+import React, { useEffect, useState } from 'react';
+import './App.css';
+import { getList, `setItem` } from '../../services/list';
+
+function App() {
+const [itemInput, setItemInput] = useState('');
+const [list, setList] = useState([]);
+
+useEffect(() => {
+let mounted = true;
+getList()
+.then(items => {
+if(mounted) {
+setList(items)
+}
+})
+return () => mounted = false;
+}, [])
+
+`const handleSubmit = (e) => { e.preventDefault(); setItem(itemInput) };`
+
+return(
+
+<div className="wrapper">
+<h1>My Grocery List</h1>
+<ul>
+{list.map(item => <li key={item.item}>{item.item}</li>)}
+</ul>
+<form onSubmit={handleSubmit}>
+<label>
+<p>New Item</p>
+<input type="text" onChange={event => setItemInput(event.target.value)} value={itemInput} />
+</label>
+<button type="submit">Submit</button>
+</form>
+</div>
+)
+}
+
+export default App;
+
+## Save the file. When you do, you’ll be able to submit values. Notice that you’ll receive a successful response in the network tab. But the list doesn’t update and the input doesn’t clear.
