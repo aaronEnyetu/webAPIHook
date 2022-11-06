@@ -3,6 +3,7 @@ import './App.css';
 import { getList, setItem } from './services/list';
 
 function App() {
+  const [alert, setAlert] = useState(false);
   const [itemInput, setItemInput] = useState('');
   const [list, setList] = useState([]);
 
@@ -17,9 +18,20 @@ function App() {
     return () => (mounted = false);
   }, []);
 
+  useEffect(() => {
+    if (alert) {
+      setTimeout(() => {
+        setAlert(false);
+      }, 1000);
+    }
+  }, [alert]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    setItem(itemInput);
+    setItem(itemInput).then(() => {
+      setItemInput('');
+      setAlert(true);
+    });
   };
 
   return (
@@ -30,6 +42,7 @@ function App() {
           <li key={item.item}>{item.item}</li>
         ))}
       </ul>
+      {alert && <h2>Submit Successful</h2>}
       <form onSubmit={handleSubmit}>
         <label>
           <p>New Item</p>

@@ -489,3 +489,113 @@ return(
 export default App;
 
 ## Save the file. When you do, you’ll be able to submit values. Notice that you’ll receive a successful response in the network tab. But the list doesn’t update and the input doesn’t clear.
+
+## Showing a Success Message
+
+It’s always a good practice to give the user some indication that their action was successful. Otherwise a user may try and resubmit a value multiple times or may think their action failed and will leave the application.
+
+To do this, create a stateful variable and setter function with useState to indicate whether to show a user an alert message. If alert is true, display an <h2> tag with the message Submit Successful.
+
+When the setItem promise resolves, clear the input and set the alert message:
+
+api-tutorial/src/components/App/App.js
+
+import React, { useEffect, useState } from 'react';
+import './App.css';
+import { getList, setItem } from '../../services/list';
+
+function App() {
+const [alert, setAlert] = useState(false);
+const [itemInput, setItemInput] = useState('');
+const [list, setList] = useState([]);
+
+useEffect(() => {
+let mounted = true;
+getList()
+.then(items => {
+if(mounted) {
+setList(items)
+}
+})
+return () => mounted = false;
+}, [])
+
+const handleSubmit = (e) => {
+e.preventDefault();
+setItem(itemInput)
+.then(() => {
+setItemInput('');
+setAlert(true);
+})
+};
+
+return(
+
+<div className="wrapper">
+<h1>My Grocery List</h1>
+<ul>
+{list.map(item => <li key={item.item}>{item.item}</li>)}
+</ul>
+{alert && <h2> Submit Successful</h2>}
+<form onSubmit={handleSubmit}>
+<label>
+<p>New Item</p>
+<input type="text" onChange={event => setItemInput(event.target.value)} value={itemInput} />
+</label>
+<button type="submit">Submit</button>
+</form>
+</div>
+)
+}
+
+export default App;
+
+## Save the file. When you do, the page will refresh and you’ll see a success message after the API request resolves.
+
+There are many other optimizations you can add. For example, you may want to disable form inputs while there is an active request. You can learn more about disabling form elements in How To Build Forms in React.
+
+Now you have alerted a user that the result was successful, but the alert message doesn’t go away and the list doesn’t update. To fix this, start by hiding the alert. In this case, you’d want to hide the information after a brief period, such as one second. You can use the setTimeout function to call setAlert(false), but you’ll need to wrap it in useEffect to ensure that it does not run on every component render.
+
+## Inside of App.js create a new effect and pass the alert to the array of triggers. This will cause the effect to run any time alert changes. Notice that this will run if alert changes from false to true, but it will also run when alert changes from true to false. Since you only want to hide the alert if it is displayed, add a condition inside the effect to only run setTimeout if alert is true:
+
+api-tutorial/src/components/App/App.js
+
+import React, { useEffect, useState } from 'react';
+import './App.css';
+import { getList, setItem } from '../../services/list';
+
+function App() {
+const [alert, setAlert] = useState(false);
+const [itemInput, setItemInput] = useState('');
+const [list, setList] = useState([]);
+...
+
+useEffect(() => {
+if(alert) {
+setTimeout(() => {
+setAlert(false);
+}, 1000)
+}
+}, [alert])
+
+const handleSubmit = (e) => {
+e.preventDefault();
+setItem(itemInput)
+.then(() => {
+setItemInput('');
+setAlert(true);
+})
+};
+
+return(
+<div className="wrapper">
+...
+</div>
+)
+}
+
+export default App;
+
+## Run the setTimeout function after 1000 milliseconds to ensure the user has time to read the change.
+
+## Save the file. Now you have an effect that will run whenever alert changes. If there is an active alert, it will start a timeout function that will close the alert after one second.
