@@ -588,6 +588,7 @@ setAlert(true);
 };
 
 return(
+
 <div className="wrapper">
 ...
 </div>
@@ -599,3 +600,45 @@ export default App;
 ## Run the setTimeout function after 1000 milliseconds to ensure the user has time to read the change.
 
 ## Save the file. Now you have an effect that will run whenever alert changes. If there is an active alert, it will start a timeout function that will close the alert after one second.
+
+## Refreshing Fetched Data
+
+Now you need a way to refresh the stale list of data. To do this, you can add a new trigger to the useEffect Hook to rerun the getList request. To ensure you have the most relevant data, you need a trigger that will update anytime there is a change to the remote data. Fortunately, you can reuse the alert state to trigger another data refresh since you know it will run any time a user updates the data. As before, you have to plan for the fact that the effect will run every time alert changes including when the alert message disappears.
+
+This time, the effect also needs to fetch data when the page loads. Create a conditional that will exit the function before the data fetch if list.length is truthy—indicating you have already fetched the data—and alert is false—indicating you have already refreshed the data. Be sure to add alert and list to the array of triggers:
+
+import React, { useEffect, useState } from 'react';
+import './App.css';
+import { getList, setItem } from '../../services/list';
+
+function App() {
+const [alert, setAlert] = useState(false);
+const [itemInput, setItemInput] = useState('');
+const [list, setList] = useState([]);
+
+useEffect(() => {
+let mounted = true;
+if(list.length && !alert) {
+return;
+}
+getList()
+.then(items => {
+if(mounted) {
+setList(items)
+}
+})
+return () => mounted = false;
+}, [alert, list])
+
+...
+
+return(
+<div className="wrapper">
+...
+</div>
+)
+}
+
+export default App;
+
+## Save the file. When you do, the data will refresh after you submit a new item:
